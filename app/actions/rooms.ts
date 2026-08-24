@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { parseAzgaarMap } from "./parse-map";
 
 export type RoomActionResult = {
   error?: string;
@@ -29,12 +30,24 @@ export async function createRoom(
 
   const name = (formData.get("name") as string)?.trim();
   const tickInterval = parseInt(formData.get("tick_interval") as string, 10);
+  const mapFile = formData.get("mapFile") as File;
 
   if (!name || name.length < 2) {
     return { error: "Room name must be at least 2 characters." };
   }
   if (!tickInterval || tickInterval < 1) {
     return { error: "Tick interval must be at least 1 minute." };
+  }
+  if (!mapFile || mapFile.size === 0) {
+    return { error: "You must upload an Azgaar map file." };
+  }
+
+  let parsedMap;
+  try {
+    const fileText = await mapFile.text();
+    parsedMap = parseAzgaarMap(fileText);
+  } catch (err: any) {
+    return { error: "Failed to parse the map file: " + err.message };
   }
 
   // 1. Create the game
@@ -43,6 +56,7 @@ export async function createRoom(
     .insert({
       name,
       created_by: user.id,
+      map_source_name: mapFile.name.replace(/\.map$/, ""),
       tick_interval_minutes: tickInterval,
       status: "setup",
     })
@@ -62,6 +76,49 @@ export async function createRoom(
 
   if (playerError) {
     return { error: playerError.message };
+  }
+
+  // 3. Batch insert nations
+  if (parsedMap.nations.length > 0) {
+    const nationsToInsert = parsedMap.nations.map((n) => ({
+      game_id: game.id,
+      azgaar_state_id: n.azgaar_state_id,
+      name: n.name,
+      color: n.color,
+      capital_burg_name: n.capital_burg_name,
+    }));
+
+    const { data: insertedNations, error: nationsError } = await supabase
+      .from("nations")
+      .insert(nationsToInsert)
+      .select("id, azgaar_state_id");
+
+    if (nationsError) {
+      return { error: "Failed to insert nations: " + nationsError.message };
+    }
+
+    // 4. Batch insert provinces (mapped to the newly inserted nation IDs)
+    if (parsedMap.provinces.length > 0 && insertedNations) {
+      const azgaarStateIdToNationId = new Map<number, string>();
+      insertedNations.forEach((n) => {
+        azgaarStateIdToNationId.set(n.azgaar_state_id, n.id);
+      });
+
+      const provincesToInsert = parsedMap.provinces.map((p) => ({
+        game_id: game.id,
+        nation_id: azgaarStateIdToNationId.get(p.azgaar_state_id) || null,
+        azgaar_province_id: p.azgaar_province_id,
+        name: p.name,
+      }));
+
+      // Supabase has a limit on rows per insert, but usually it's ~1000-2000. 
+      // If a map has many provinces, we might need chunks, but let's try direct insert first.
+      const { error: provError } = await supabase.from("provinces").insert(provincesToInsert);
+      
+      if (provError) {
+        return { error: "Failed to insert provinces: " + provError.message };
+      }
+    }
   }
 
   // Clear cached data so the new room appears immediately
