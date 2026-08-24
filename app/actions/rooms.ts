@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export type RoomActionResult = {
   error?: string;
@@ -63,7 +64,11 @@ export async function createRoom(
     return { error: playerError.message };
   }
 
-  return { success: true, gameId: game.id };
+  // Clear cached data so the new room appears immediately
+  revalidatePath("/dashboard");
+  revalidatePath("/rooms/browse");
+  
+  redirect(`/rooms/${game.id}`);
 }
 
 /**
