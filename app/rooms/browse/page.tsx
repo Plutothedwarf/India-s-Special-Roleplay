@@ -81,7 +81,7 @@ export default async function BrowseRoomsPage() {
                       href={`/rooms/${game.id}`}
                       className="btn-secondary btn-full"
                     >
-                      {isCreator ? "⚡ Open (God)" : "🎮 Open (Player)"}
+                      {isCreator ? "⚡ Enter Room (God)" : "🎮 Enter Room"}
                     </a>
                   ) : (
                     <JoinRoomButton gameId={game.id} />
