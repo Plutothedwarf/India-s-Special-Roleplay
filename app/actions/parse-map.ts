@@ -69,7 +69,7 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
 
     nations.push({
       azgaar_state_id: state.i,
-      name: state.name,
+      name: state.fullName || state.name,
       color: state.color || "#CCCCCC",
       capital_burg_name: capitalName
     });
@@ -84,7 +84,7 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
       provinces.push({
         azgaar_province_id: prov.i,
         azgaar_state_id: prov.state,
-        name: prov.name
+        name: prov.fullName || prov.name
       });
     }
   }
