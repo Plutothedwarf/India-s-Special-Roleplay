@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, useRef } from "react";
 import { createRoom, type RoomActionResult } from "@/app/actions/rooms";
 
 const initialState: RoomActionResult = {};
@@ -10,6 +10,8 @@ export default function CreateRoomForm() {
     createRoom,
     initialState
   );
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form action={formAction} className="room-form">
@@ -57,18 +59,57 @@ export default function CreateRoomForm() {
         </div>
       )}
 
-      <div>
-        <label htmlFor="mapFile" className="block text-sm font-medium text-slate-300">
+      <div className="form-group">
+        <label htmlFor="mapFile" className="form-label">
           Azgaar Map File (.map)
         </label>
+        <p className="form-hint">
+          Upload your .map file exported from Azgaar's Fantasy Map Generator.
+        </p>
+        
         <input
           type="file"
           name="mapFile"
           id="mapFile"
           accept=".map"
           required
-          className="mt-1 block w-full text-slate-100 bg-slate-900 border-slate-700 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-900 file:text-indigo-300 hover:file:bg-indigo-800"
+          ref={fileInputRef}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            setFileName(file ? file.name : null);
+          }}
+          className="hidden"
+          disabled={isPending}
+          style={{ display: "none" }}
         />
+        
+        <div 
+          className="form-input flex items-center justify-between cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "space-between", 
+            cursor: isPending ? "not-allowed" : "pointer",
+            opacity: isPending ? 0.6 : 1 
+          }}
+        >
+          <span style={{ color: fileName ? "inherit" : "rgba(255, 255, 255, 0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {fileName || "No file chosen..."}
+          </span>
+          <span 
+            className="btn-secondary" 
+            style={{ 
+              padding: "0.25rem 0.75rem", 
+              fontSize: "0.875rem", 
+              borderRadius: "4px", 
+              pointerEvents: "none",
+              margin: 0
+            }}
+          >
+            Browse
+          </span>
+        </div>
       </div>
 
       <button
