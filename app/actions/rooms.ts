@@ -89,6 +89,12 @@ export async function createRoom(
       geometry: n.geometry,
     }));
 
+    console.log(`[DEBUG] Attempting to insert ${nationsToInsert.length} nations`);
+    if (nationsToInsert.length > 0) {
+      console.log(`[DEBUG] First nation geometry length: ${nationsToInsert[0].geometry?.length || 0}`);
+      console.log(`[DEBUG] Has geometry array:`, nationsToInsert.map(n => !!n.geometry));
+    }
+
     const { data: insertedNations, error: nationsError } = await supabase
       .from("nations")
       .insert(nationsToInsert)

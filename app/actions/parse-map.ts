@@ -57,7 +57,7 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
       const paths = statesBodyMatch[1].match(/<path[^>]+>/g);
       if (paths) {
         paths.forEach(p => {
-          const idMatch = p.match(/id="state_(\d+)"/);
+          const idMatch = p.match(/id="state(\d+)"/);
           const dMatch = p.match(/d="([^"]+)"/);
           if (idMatch && dMatch) {
             stateGeometries.set(parseInt(idMatch[1], 10), dMatch[1]);
