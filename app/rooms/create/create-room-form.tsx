@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createRoom, type RoomActionResult } from "@/app/actions/rooms";
 
 const initialState: RoomActionResult = {};
@@ -10,6 +11,13 @@ export default function CreateRoomForm() {
     createRoom,
     initialState
   );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.success && state.gameId) {
+      router.push(`/rooms/${state.gameId}`);
+    }
+  }, [state, router]);
 
   return (
     <form action={formAction} className="room-form">
@@ -26,7 +34,7 @@ export default function CreateRoomForm() {
           maxLength={64}
           placeholder="e.g. The Grand Campaign"
           className="form-input"
-          disabled={isPending}
+          disabled={isPending || state.success}
         />
       </div>
 
@@ -47,7 +55,7 @@ export default function CreateRoomForm() {
           max={1440}
           defaultValue={60}
           className="form-input"
-          disabled={isPending}
+          disabled={isPending || state.success}
         />
       </div>
 
@@ -61,9 +69,9 @@ export default function CreateRoomForm() {
         type="submit"
         className="btn-primary btn-full"
         id="btn-submit-create-room"
-        disabled={isPending}
+        disabled={isPending || state.success}
       >
-        {isPending ? "Creating…" : "✦ Create Room"}
+        {isPending || state.success ? "Creating…" : "✦ Create Room"}
       </button>
     </form>
   );

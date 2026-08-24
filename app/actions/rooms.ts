@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 export type RoomActionResult = {
   error?: string;
+  success?: boolean;
+  gameId?: string;
 };
 
 /**
@@ -61,7 +63,7 @@ export async function createRoom(
     return { error: playerError.message };
   }
 
-  redirect(`/rooms/${game.id}`);
+  return { success: true, gameId: game.id };
 }
 
 /**
