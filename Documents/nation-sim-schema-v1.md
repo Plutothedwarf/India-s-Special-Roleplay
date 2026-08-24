@@ -50,14 +50,18 @@ Parsed out of the .map file at game creation. One row per nation, per game (so t
 - `is_claimed` (bool)
 
 ### `provinces`
-Sub-regions of a nation (Azgaar has provinces/cells within states). For the MVP we just need enough to render borders and let the God/players click something meaningful — not full cell-level granularity yet.
+Sub-regions of a nation (Azgaar has provinces/cells within states).
 
 - `id` (uuid, PK)
 - `game_id` (FK → games.id)
 - `nation_id` (FK → nations.id, nullable — unclaimed/neutral land has no nation)
 - `azgaar_province_id` (int)
 - `name` (text)
-- `geometry` (jsonb) — the polygon/path data needed to render this province on the map
+- `geometry` (jsonb, currently unpopulated — see note below)
+
+> **Known gap, discovered during step 4:** Azgaar's `.map` file does not store pre-computed SVG shapes for individual provinces — those are calculated dynamically in Azgaar via a D3 Voronoi graph, which is nontrivial to replicate. It *does* store pre-computed shapes for nations/states. As a result, step 4 renders the map at the **nation level only** — province name/ownership data is still imported and stored (from step 3), just not individually drawn or clickable on the map yet.
+>
+> **This is a real, not-yet-closed gap for later gameplay.** Anything that needs to target or affect a specific sub-region rather than a whole nation — conquering individual territory rather than a whole nation at once, provinces rebelling, espionage or unrest targeting a specific region — needs real province-level geometry to work properly. This should be tackled as its own dedicated task (likely something like "step 4.5: province geometry") specifically when we design the war/territory/espionage systems — not assumed to already work because the `provinces` table exists.
 
 ### `game_clock_events`
 An append-only log the clock writes to as it advances. Doubles as the "world heartbeat" feed every client can subscribe to.
