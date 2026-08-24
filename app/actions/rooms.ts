@@ -86,6 +86,7 @@ export async function createRoom(
       name: n.name,
       color: n.color,
       capital_burg_name: n.capital_burg_name,
+      geometry: n.geometry,
     }));
 
     const { data: insertedNations, error: nationsError } = await supabase

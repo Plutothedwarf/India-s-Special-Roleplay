@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LeaveRoomButton from "./leave-room-button";
+import MapViewer from "@/components/map-viewer";
 
 type Params = Promise<{ id: string }>;
 
@@ -51,7 +52,7 @@ export default async function RoomDetailPage({
   // 2. Query the nations
   const { data: nations, error: nationsError } = await supabase
     .from("nations")
-    .select("id, azgaar_state_id, name, color, is_claimed, capital_burg_name")
+    .select("id, azgaar_state_id, name, color, is_claimed, capital_burg_name, geometry, government_type")
     .eq("game_id", gameId)
     .order("azgaar_state_id");
 
@@ -132,6 +133,14 @@ export default async function RoomDetailPage({
         </div>
       </section>
 
+      {/* Map Viewer */}
+      {nations && nations.length > 0 && (
+        <section className="profile-card" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
+          <h2 style={{ marginBottom: "1rem" }}>World Map</h2>
+          <MapViewer nations={nations} />
+        </section>
+      )}
+
       {/* Nations list */}
       <section className="profile-card" style={{ marginBottom: "1.5rem" }}>
         <h2>Nations ({nations?.length ?? 0})</h2>
@@ -195,8 +204,7 @@ export default async function RoomDetailPage({
 
       {/* Coming soon + leave */}
       <div className="coming-soon">
-        🏗️ Nation claiming, map rendering, and the world clock are coming in
-        future steps.
+        🏗️ Nation claiming and the world clock are coming in future steps.
       </div>
 
       {!isGod && (

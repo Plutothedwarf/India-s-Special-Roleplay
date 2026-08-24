@@ -3,6 +3,7 @@ export interface MapNation {
   name: string;
   color: string;
   capital_burg_name: string | null;
+  geometry: string | null;
 }
 
 export interface MapProvince {
@@ -49,6 +50,25 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
     console.warn("Failed to parse burgs data", e);
   }
 
+  const stateGeometries = new Map<number, string>();
+  try {
+    const statesBodyMatch = mapText.match(/<g id="statesBody"[^>]*>([\s\S]*?)<\/g>/);
+    if (statesBodyMatch) {
+      const paths = statesBodyMatch[1].match(/<path[^>]+>/g);
+      if (paths) {
+        paths.forEach(p => {
+          const idMatch = p.match(/id="state_(\d+)"/);
+          const dMatch = p.match(/d="([^"]+)"/);
+          if (idMatch && dMatch) {
+            stateGeometries.set(parseInt(idMatch[1], 10), dMatch[1]);
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to parse state geometries", e);
+  }
+
   const nations: MapNation[] = [];
   const provinces: MapProvince[] = [];
 
@@ -71,7 +91,8 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
       azgaar_state_id: state.i,
       name: state.fullName || state.name,
       color: state.color || "#CCCCCC",
-      capital_burg_name: capitalName
+      capital_burg_name: capitalName,
+      geometry: stateGeometries.get(state.i) || null,
     });
   }
 
