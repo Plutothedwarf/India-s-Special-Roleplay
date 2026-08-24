@@ -18,18 +18,20 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
 
   // We only care about nations that actually have geometry to render
   const mapNations = nations.filter((n) => n.geometry);
+  console.log(`[MapViewer] Received ${nations.length} nations. ${mapNations.length} have geometry.`);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] sm:min-h-[600px] bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden flex items-center justify-center">
+    <div className="relative w-full h-full min-h-[500px] sm:min-h-[600px] bg-slate-900/50 rounded-xl border border-slate-700/50 overflow-hidden">
       <TransformWrapper
         initialScale={1}
         minScale={0.5}
         maxScale={4}
         centerOnInit={true}
         wheel={{ step: 0.1 }}
+        limitToBounds={false}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
-          <>
+          <div className="w-full h-full relative">
             <div className="absolute top-4 right-4 z-10 flex gap-2">
               <button
                 onClick={() => zoomIn()}
@@ -60,8 +62,12 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
             <TransformComponent wrapperClass="w-full h-full cursor-grab active:cursor-grabbing">
               <svg
                 viewBox="0 0 1366 641"
-                className="w-[1000px] h-[500px] sm:w-[1366px] sm:h-[641px]"
-                style={{ filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  minWidth: "1000px",
+                  filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))"
+                }}
               >
                 {/* Ocean/Background */}
                 <rect x="0" y="0" width="1366" height="641" fill="#1e293b" opacity="0.4" />
@@ -84,7 +90,7 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
                 </g>
               </svg>
             </TransformComponent>
-          </>
+          </div>
         )}
       </TransformWrapper>
 
