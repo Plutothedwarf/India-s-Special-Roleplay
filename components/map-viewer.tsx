@@ -11,6 +11,8 @@ type NationMapData = {
   government_type: string | null;
   capital_burg_name: string | null;
   is_claimed: boolean;
+  label_x: number | null;
+  label_y: number | null;
 };
 
 export default function MapViewer({ nations }: { nations: NationMapData[] }) {
@@ -27,7 +29,7 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
         minScale={0.5}
         maxScale={4}
         centerOnInit={true}
-        wheel={{ step: 0.1 }}
+        wheel={{ step: 0.04 }}
         limitToBounds={false}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
@@ -62,10 +64,11 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
             <TransformComponent wrapperClass="w-full h-full cursor-grab active:cursor-grabbing">
               <svg
                 viewBox="0 0 1366 641"
+                width={1366}
+                height={641}
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  minWidth: "1000px",
+                  maxWidth: "100%",
+                  height: "auto",
                   filter: "drop-shadow(0 0 20px rgba(0,0,0,0.5))"
                 }}
               >
@@ -74,18 +77,36 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
                 
                 <g id="nations-layer">
                   {mapNations.map((nation) => (
-                    <path
-                      key={nation.id}
-                      d={nation.geometry!}
-                      fill={nation.color}
-                      stroke={selectedNation?.id === nation.id ? "#ffffff" : "#0f172a"}
-                      strokeWidth={selectedNation?.id === nation.id ? "3" : "1"}
-                      className="transition-all duration-200 hover:opacity-90 outline-none"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setSelectedNation(nation)}
-                    >
-                      <title>{nation.name}</title>
-                    </path>
+                    <g key={nation.id}>
+                      <path
+                        d={nation.geometry!}
+                        fill={nation.color}
+                        stroke={selectedNation?.id === nation.id ? "#ffffff" : "#0f172a"}
+                        strokeWidth={selectedNation?.id === nation.id ? "3" : "1"}
+                        className="transition-all duration-200 hover:opacity-90 outline-none"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setSelectedNation(nation)}
+                      >
+                        <title>{nation.name}</title>
+                      </path>
+                      {nation.label_x && nation.label_y && (
+                        <text
+                          x={nation.label_x}
+                          y={nation.label_y}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill="#ffffff"
+                          fontSize="16"
+                          fontWeight="bold"
+                          style={{
+                            pointerEvents: "none",
+                            textShadow: "1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000"
+                          }}
+                        >
+                          {nation.name}
+                        </text>
+                      )}
+                    </g>
                   ))}
                 </g>
               </svg>
@@ -109,20 +130,20 @@ export default function MapViewer({ nations }: { nations: NationMapData[] }) {
             </button>
           </div>
           
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between text-slate-300">
+          <div className="space-y-3 text-sm">
+            <div className="flex w-full items-center justify-between text-slate-300">
               <span className="text-slate-400">Capital</span>
-              <span className="font-medium">{selectedNation.capital_burg_name || "Unknown"}</span>
+              <span className="font-medium text-right ml-4">{selectedNation.capital_burg_name || "Unknown"}</span>
             </div>
             
-            <div className="flex items-center justify-between text-slate-300">
+            <div className="flex w-full items-center justify-between text-slate-300">
               <span className="text-slate-400">Government</span>
-              <span className="font-medium capitalize">{selectedNation.government_type || "Unknown"}</span>
+              <span className="font-medium capitalize text-right ml-4">{selectedNation.government_type || "Unknown"}</span>
             </div>
 
-            <div className="flex items-center justify-between text-slate-300">
+            <div className="flex w-full items-center justify-between text-slate-300">
               <span className="text-slate-400">Status</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${selectedNation.is_claimed ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-600/30 text-slate-400 border border-slate-500/30'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ml-4 text-right ${selectedNation.is_claimed ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-600/30 text-slate-400 border border-slate-500/30'}`}>
                 {selectedNation.is_claimed ? 'Claimed' : 'Unclaimed'}
               </span>
             </div>

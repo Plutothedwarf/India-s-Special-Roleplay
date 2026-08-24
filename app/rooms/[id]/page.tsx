@@ -52,7 +52,7 @@ export default async function RoomDetailPage({
   // 2. Query the nations
   const { data: nations, error: nationsError } = await supabase
     .from("nations")
-    .select("id, azgaar_state_id, name, color, is_claimed, capital_burg_name, geometry, government_type")
+    .select("id, azgaar_state_id, name, color, is_claimed, capital_burg_name, geometry, government_type, label_x, label_y")
     .eq("game_id", gameId)
     .order("azgaar_state_id");
 

@@ -4,6 +4,8 @@ export interface MapNation {
   color: string;
   capital_burg_name: string | null;
   geometry: string | null;
+  label_x: number | null;
+  label_y: number | null;
 }
 
 export interface MapProvince {
@@ -93,6 +95,8 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
       color: state.color || "#CCCCCC",
       capital_burg_name: capitalName,
       geometry: stateGeometries.get(state.i) || null,
+      label_x: state.pole ? state.pole[0] : null,
+      label_y: state.pole ? state.pole[1] : null,
     });
   }
 

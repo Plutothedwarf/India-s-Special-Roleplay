@@ -87,6 +87,8 @@ export async function createRoom(
       color: n.color,
       capital_burg_name: n.capital_burg_name,
       geometry: n.geometry,
+      label_x: n.label_x,
+      label_y: n.label_y,
     }));
 
     console.log(`[DEBUG] Attempting to insert ${nationsToInsert.length} nations`);
