@@ -114,6 +114,9 @@ export class AzgaarBridge {
     const blob = new Blob([repairedText], { type: "text/plain" });
 
     if (this.win && this.win.uploadMap) {
+      // Capture the old pack reference so we know when uploadMap has actually replaced it
+      const oldPack = this.getGlobal('pack');
+
       this.win.uploadMap(blob, () => {
         // After loading the map, force the canvas to fill the responsive iframe
         if (this.win && this.win.fitMapToScreen) {
@@ -126,10 +129,22 @@ export class AzgaarBridge {
           this.win.zoom.translateExtent([[0, 0], [this.win.graphWidth, this.win.graphHeight]]);
         }
       });
-      // Wait for the new map to finish parsing and rendering
-      // Note: uploadMap is asynchronous and resets the pack, so we wait until pack is populated again
-      await new Promise(r => setTimeout(r, 1000));
-      await this.waitForReady();
+
+      // Poll until FMG completely replaces the internal pack object with the newly parsed map
+      const start = Date.now();
+      await new Promise<void>((resolve, reject) => {
+        const checkPack = () => {
+          const currentPack = this.getGlobal('pack');
+          if (currentPack && currentPack !== oldPack && currentPack.states && currentPack.states.length > 0) {
+            resolve();
+          } else if (Date.now() - start > 15000) {
+            reject(new Error("Azgaar FMG timed out while uploading the new map"));
+          } else {
+            setTimeout(checkPack, 100);
+          }
+        };
+        checkPack();
+      });
     } else {
       throw new Error("Azgaar uploadMap function not found");
     }
