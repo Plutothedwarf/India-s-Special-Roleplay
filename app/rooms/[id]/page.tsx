@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LeaveRoomButton from "./leave-room-button";
+import AzgaarMap from "@/components/azgaar-map";
 
 type Params = Promise<{ id: string }>;
 
@@ -131,6 +132,31 @@ export default async function RoomDetailPage({
           </span>
         </div>
       </section>
+
+      {/* Map Viewer */}
+      {game.map_source_name ? (
+        <section className="profile-card" style={{ marginBottom: "1.5rem", padding: "1rem" }}>
+          <h2 style={{ marginBottom: "1rem" }}>World Map</h2>
+          <AzgaarMap 
+            mapSourceName={game.map_source_name} 
+            nations={
+              nations?.map(n => ({
+                id: n.id,
+                map_id: n.azgaar_state_id,
+                name: n.name,
+                color: n.color,
+                is_claimed: n.is_claimed,
+                capital_burg_name: n.capital_burg_name
+              })) || []
+            } 
+          />
+        </section>
+      ) : (
+        <section className="profile-card" style={{ marginBottom: "1.5rem" }}>
+          <h2>World Map</h2>
+          <p className="room-meta-label">No map uploaded for this room.</p>
+        </section>
+      )}
 
       {/* Nations list */}
       <section className="profile-card" style={{ marginBottom: "1.5rem" }}>

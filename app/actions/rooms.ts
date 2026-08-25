@@ -46,8 +46,16 @@ export async function createRoom(
   try {
     const fileText = await mapFile.text();
     parsedMap = parseAzgaarMap(fileText);
+    
+    // Save the uploaded map to the sample maps folder so it can be served
+    const fs = require('fs');
+    const path = require('path');
+    const safeName = mapFile.name;
+    const destPath = path.join(process.cwd(), "sample maps", safeName);
+    fs.writeFileSync(destPath, fileText);
+    
   } catch (err: any) {
-    return { error: "Failed to parse the map file: " + err.message };
+    return { error: "Failed to parse or save the map file: " + err.message };
   }
 
   // 1. Create the game

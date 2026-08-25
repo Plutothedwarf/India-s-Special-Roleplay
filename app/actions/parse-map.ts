@@ -17,10 +17,25 @@ export interface ParsedMap {
 }
 
 export function parseAzgaarMap(mapText: string): ParsedMap {
-  // Azgaar maps are separated by \r\n
-  const lines = mapText.split("\r\n");
+  // Repair corrupted maps (where \n was replaced by \r\n inside the SVG)
+  const lines = mapText.replace(/\r\n/g, '\n').split('\n');
+  let svgStart = -1, svgEnd = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('<svg')) svgStart = i;
+    if (lines[i].includes('</svg>')) svgEnd = i;
+  }
 
-  if (lines.length < 35) {
+  let blocks: string[] = [];
+  if (svgStart !== -1 && svgEnd !== -1) {
+    blocks.push(...lines.slice(0, svgStart));
+    blocks.push(lines.slice(svgStart, svgEnd + 1).join('\n'));
+    blocks.push(...lines.slice(svgEnd + 1));
+  } else {
+    // If not corrupted or missing SVG, split by \r\n or fallback to \n
+    blocks = mapText.split(mapText.includes('\r\n') ? '\r\n' : '\n');
+  }
+
+  if (blocks.length < 35) {
     throw new Error("Invalid Azgaar map file: too few lines to parse");
   }
 
@@ -32,19 +47,19 @@ export function parseAzgaarMap(mapText: string): ParsedMap {
   let burgsData: any[] = [];
 
   try {
-    statesData = JSON.parse(lines[14]);
+    statesData = JSON.parse(blocks[14]);
   } catch (e) {
     console.warn("Failed to parse states data", e);
   }
 
   try {
-    provincesData = JSON.parse(lines[30]);
+    provincesData = JSON.parse(blocks[30]);
   } catch (e) {
     console.warn("Failed to parse provinces data", e);
   }
 
   try {
-    burgsData = JSON.parse(lines[15]);
+    burgsData = JSON.parse(blocks[15]);
   } catch (e) {
     console.warn("Failed to parse burgs data", e);
   }
