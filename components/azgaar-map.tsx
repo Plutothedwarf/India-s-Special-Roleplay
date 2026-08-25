@@ -48,6 +48,10 @@ export default function AzgaarMap({
         
         if (!active) return;
         
+        // CRITICAL FIX: Wait for the FMG iframe to fully initialize and expose its global functions 
+        // (like uploadMap) BEFORE we try to upload our custom map!
+        await newBridge.waitForReady();
+        
         await newBridge.loadMapFromText(text);
         
         if (!active) return;

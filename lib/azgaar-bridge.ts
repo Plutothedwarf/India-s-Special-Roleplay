@@ -119,6 +119,12 @@ export class AzgaarBridge {
         if (this.win && this.win.fitMapToScreen) {
           this.win.fitMapToScreen();
         }
+        
+        // ISSUE 2 FIX: Constrain pan/zoom bounds so the user cannot drag the map off-screen.
+        // We set D3's translateExtent to the map's internal coordinate bounds.
+        if (this.win && this.win.zoom && this.win.graphWidth && this.win.graphHeight) {
+          this.win.zoom.translateExtent([[0, 0], [this.win.graphWidth, this.win.graphHeight]]);
+        }
       });
       // Wait for the new map to finish parsing and rendering
       // Note: uploadMap is asynchronous and resets the pack, so we wait until pack is populated again
